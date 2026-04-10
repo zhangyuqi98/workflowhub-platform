@@ -1,0 +1,34 @@
+{
+  "name": "workflowhub-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "WorkflowHub platform Phase 1 prototype",
+  "bin": {
+    "workflowhub": "./bin/workflowhub.mjs"
+  },
+  "scripts": {
+    "dev": "cd apps/web && ../../node_modules/.bin/next dev --hostname 127.0.0.1 --port 3001",
+    "build": "cd apps/web && WORKFLOWHUB_SKIP_DB_DURING_BUILD=true ../../node_modules/.bin/next build",
+    "start": "cd apps/web && ../../node_modules/.bin/next start --hostname 127.0.0.1 --port 3001",
+    "cli": "node ./bin/workflowhub.mjs",
+    "typecheck": "tsc --noEmit --incremental false",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:backfill-artifacts": "node prisma/backfill-artifacts.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "next": "^15.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "prisma": "^6.6.0",
+    "typescript": "^5.8.0"
+  }
+}

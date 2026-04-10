@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-workflowhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-workflowhub}
+      POSTGRES_DB: ${POSTGRES_DB:-workflowhub}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-workflowhub} -d ${POSTGRES_DB:-workflowhub}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  workflowhub:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-workflowhub}:${POSTGRES_PASSWORD:-workflowhub}@postgres:5432/${POSTGRES_DB:-workflowhub}?schema=public
+      WORKFLOWHUB_BASE_URL: http://localhost:3001
+      WORKFLOWHUB_PUBLISH_TOKEN: ${WORKFLOWHUB_PUBLISH_TOKEN:-}
+      WORKFLOWHUB_SESSION_SECRET: ${WORKFLOWHUB_SESSION_SECRET:-}
+      WORKFLOWHUB_SEED_ON_BOOT: ${WORKFLOWHUB_SEED_ON_BOOT:-false}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+    volumes:
+      - workflowhub-storage:/app/.workflowhub
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/health | grep '\"status\":\"ok\"' >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
+  workflowhub-storage:

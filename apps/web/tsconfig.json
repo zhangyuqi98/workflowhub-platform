@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@schema/*": [
+        "../../packages/workflow-schema/*"
+      ]
+    }
+  },
+  "include": [
+    "../../next-env.d.ts",
+    "./**/*.ts",
+    "./**/*.tsx",
+    ".next/types/**/*.ts"
+  ]
+}

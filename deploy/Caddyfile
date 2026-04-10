@@ -1,0 +1,12 @@
+workflowhub.example.com {
+  encode gzip zstd
+
+  @health path /api/health /api/ready /api/version
+  handle @health {
+    reverse_proxy workflowhub:3001
+  }
+
+  handle {
+    reverse_proxy workflowhub:3001
+  }
+}

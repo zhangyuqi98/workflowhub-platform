@@ -1,0 +1,15 @@
+[Unit]
+Description=WorkflowHub
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/workflowhub
+EnvironmentFile=/etc/workflowhub/workflowhub.env
+ExecStart=/usr/bin/docker compose -f /opt/workflowhub/deploy/docker-compose.production.yml up
+ExecStop=/usr/bin/docker compose -f /opt/workflowhub/deploy/docker-compose.production.yml down
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

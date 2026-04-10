@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+*.pyc
+.env
+.env.local
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
+dev.db
+prisma/dev.db
+prisma/dev.db-journal

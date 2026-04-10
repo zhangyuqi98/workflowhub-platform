@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String            @id @default(cuid())
+  username          String            @unique
+  displayName       String
+  bio               String?
+  githubId          String?           @unique
+  githubLogin       String?           @unique
+  avatarUrl         String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  auditLogs         AuditLog[]
+  workflows         Workflow[]
+  publishedVersions WorkflowVersion[]
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorType  String
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([actorType, actorId])
+  @@index([targetType, targetId])
+  @@index([userId])
+}
+
+model RateLimitBucket {
+  id        String   @id @default(cuid())
+  bucketKey String   @unique
+  scope     String
+  actorKey  String
+  count     Int      @default(1)
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([scope, actorKey])
+  @@index([resetAt])
+}
+
+model Workflow {
+  id            String                 @id @default(cuid())
+  slug          String                 @unique
+  name          String
+  summary       String
+  description   String
+  latestVersion String
+  updatedAt     DateTime
+  installCount  Int                    @default(0)
+  favoriteCount Int                    @default(0)
+  license       String
+  createdAt     DateTime               @default(now())
+  authorId      String
+  author        User                   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  versions      WorkflowVersion[]
+  steps         WorkflowStep[]
+  tags          WorkflowTag[]
+  keywords      WorkflowKeyword[]
+  runtimes      WorkflowRuntime[]
+  tools         WorkflowRequiredTool[]
+  installs      WorkflowInstall[]
+
+  @@index([authorId])
+}
+
+model WorkflowVersion {
+  id             String   @id @default(cuid())
+  version        String
+  publishedAt    DateTime
+  changelog      String
+  manifestJson   Json?
+  workflowJson   Json?
+  readmeMarkdown String?
+  publishedById  String?
+  workflowId     String
+  publishedBy    User?    @relation(fields: [publishedById], references: [id], onDelete: SetNull)
+  workflow       Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  installs       WorkflowInstall[]
+
+  @@unique([workflowId, version])
+  @@index([workflowId])
+  @@index([publishedById])
+}
+
+model WorkflowStep {
+  id          String   @id @default(cuid())
+  stepKey     String
+  position    Int
+  title       String
+  instruction String
+  tool        String?
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, position])
+  @@index([workflowId])
+}
+
+model WorkflowTag {
+  id         String   @id @default(cuid())
+  tag        String
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, tag])
+  @@index([tag])
+}
+
+model WorkflowKeyword {
+  id         String   @id @default(cuid())
+  keyword    String
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, keyword])
+  @@index([keyword])
+}
+
+model WorkflowRuntime {
+  id         String   @id @default(cuid())
+  runtime    String
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, runtime])
+  @@index([runtime])
+}
+
+model WorkflowRequiredTool {
+  id         String   @id @default(cuid())
+  tool       String
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, tool])
+  @@index([tool])
+}
+
+model WorkflowInstall {
+  id              String          @id @default(cuid())
+  runtimeFamily   String?
+  installSource   String?
+  createdAt       DateTime        @default(now())
+  workflowId      String
+  workflowVersionId String
+  workflow        Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowVersion WorkflowVersion @relation(fields: [workflowVersionId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([workflowVersionId])
+}
